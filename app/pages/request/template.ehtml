@@ -1,0 +1,318 @@
+import "./style.css";
+import { LiveView, session } from "@elements/app";
+import favicon from "#app/shared/assets/favicons/favicon.svg";
+import { Layout } from "#app/shared/templates/layout";
+import { VoteButton, StatusPill } from "#app/shared/templates/request-bits";
+import {
+  FeatureRequest,
+  Vote,
+  Comment,
+  MAX_COMMENT,
+  setStatus,
+  mergeRequest,
+} from "#app/shared/services/board";
+import { STATUSES, statusLabel } from "#app/shared/services/status";
+import { timeAgo, longDate, plural, initials } from "#app/shared/services/format";
+
+export interface ShippedIn {
+  id: string;
+  title: string;
+  version: string;
+  publishedAt: Date;
+}
+
+interface Draft {
+  body: string;
+  error: string;
+}
+
+interface MergeForm {
+  targetId: string;
+  confirming: boolean;
+  busy: boolean;
+  error: string;
+}
+
+export function postComment(comments: LiveView<Comment>, draft: Draft) {
+  let body = draft.body.trim();
+
+  if (!body) {
+    return;
+  }
+
+  draft.error = "";
+
+  try {
+    comments.insert(
+      {
+        userId: session.getOrThrow("userId"),
+        userName: session.getOrThrow("userName"),
+        isTeam: session.get("role") === "admin",
+        kind: "comment",
+        body,
+        createdAt: new Date(),
+      },
+      () => draft.body = "",
+    );
+  } catch (err: any) {
+    draft.error = err.message;
+    draft.body = body;
+  }
+}
+
+function canDelete(comment: Comment): boolean {
+  return comment.kind === "comment" &&
+    (comment.userId === session.get("userId") || session.get("role") === "admin");
+}
+
+function thread(comments: LiveView<Comment>): Comment[] {
+  return comments.sort((a, b) => +a.createdAt - +b.createdAt);
+}
+
+function onStatus(requestId: string, status: string, result: { error: string }) {
+  result.error = "";
+
+  try {
+    setStatus(requestId, status);
+  } catch (err: any) {
+    result.error = err.message;
+  }
+}
+
+function onMerge(sourceId: string, form: MergeForm) {
+  form.busy = true;
+  form.error = "";
+
+  try {
+    mergeRequest(sourceId, form.targetId);
+    form.confirming = false;
+  } catch (err: any) {
+    form.error = err.message;
+  }
+
+  form.busy = false;
+}
+
+function mergeCandidates(requests: LiveView<FeatureRequest>, id: string): FeatureRequest[] {
+  return requests
+    .filter((r) => r.id !== id && !r.mergedIntoId)
+    .sort((a, b) => a.title.localeCompare(b.title));
+}
+
+<html lang="en" class="page-request" (
+  id: string,
+  requests: LiveView<FeatureRequest>,
+  votes?: LiveView<Vote> | undefined,
+  comments: LiveView<Comment>,
+  shippedIn: ShippedIn[],
+)>
+  <head>
+    <title>{requests.find((r) => r.id === id)?.title ?? "Request"} · wishcairn</title>
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+  </head>
+  <body>
+    <Layout current="board">
+      <RequestDetail e:if={requests.find((r) => r.id === id)}
+                     request={requests.find((r) => r.id === id)!}
+                     merged={requests.find((r) => r.id === requests.find((x) => x.id === id)?.mergedIntoId)}
+                     {requests}
+                     {votes}
+                     {comments}
+                     {shippedIn} />
+      <div e:else class="stack">
+        <h1>This request was removed</h1>
+        <p><a href="/">Back to all requests</a></p>
+      </div>
+    </Layout>
+  </body>
+</html>
+
+<RequestDetail (
+  request: FeatureRequest,
+  merged?: FeatureRequest | undefined,
+  requests: LiveView<FeatureRequest>,
+  votes?: LiveView<Vote> | undefined,
+  comments: LiveView<Comment>,
+  shippedIn: ShippedIn[],
+)>
+  <div class="detail">
+    <article class="stack is-lg">
+      <a class="back-link" href="/">
+        <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+          <path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        All requests
+      </a>
+
+      <div class="detail-head row is-start">
+        <VoteButton {request} {votes} />
+        <div class="stack is-xs">
+          <h1>{request.title}</h1>
+          <div class="detail-meta cluster is-sm">
+            <StatusPill status={request.status} />
+            <span>Suggested by {request.authorName} · {timeAgo(request.createdAt)}</span>
+          </div>
+        </div>
+      </div>
+
+      <div e:if={merged} class="callout is-info">
+        <p class="callout-title">Merged</p>
+        <p>
+          The team merged this into <a href={`/requests/${merged!.id}`}>{merged!.title}</a>,
+          which asks for the same thing. Votes moved there, so follow along on that request.
+        </p>
+      </div>
+
+      <p e:if={request.description} class="detail-desc">{request.description}</p>
+
+      <section class="thread stack">
+        <h2>Activity</h2>
+
+        <ol class="thread-list stack is-lg" e:if={comments.length > 0}>
+          <ThreadEntry e:for={c of thread(comments)} comment={c} {comments} />
+        </ol>
+        <p e:else class="text-ink-soft">No comments yet. Start the conversation.</p>
+
+        <Composer e:if={session.isLoggedIn()} {comments} />
+        <p e:else class="callout">
+          <a href={`/signin?next=/requests/${request.id}`}>Sign in</a> to vote and comment.
+        </p>
+      </section>
+    </article>
+
+    <aside class="detail-side stack">
+      <div class="card">
+        <div class="card-body stack">
+          <dl class="detail-facts">
+            <dt>Status</dt>
+            <dd>{statusLabel(request.status)}</dd>
+            <dt>Votes</dt>
+            <dd>{request.voteCount}</dd>
+            <dt>Comments</dt>
+            <dd>{request.commentCount}</dd>
+            <dt>Suggested</dt>
+            <dd>{longDate(request.createdAt)}</dd>
+          </dl>
+
+          <div e:if={shippedIn.length > 0} class="stack is-xs">
+            <p class="eyebrow">Shipped in</p>
+            <a e:for={entry of shippedIn} href={`/changelog#${entry.id}`}>
+              {entry.version ? `${entry.version}: ` : ""}{entry.title}
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <TeamPanel e:if={session.get("role") === "admin" && !request.mergedIntoId} {request} {requests} />
+    </aside>
+  </div>
+</RequestDetail>
+
+<ThreadEntry (comment: Comment, comments: LiveView<Comment>)>
+  <li e:if={comment.kind === "comment"} class={["entry", comment.isTeam && "is-team"]}>
+    <span class={["avatar", comment.isTeam && "is-team"]} aria-hidden="true">{initials(comment.userName)}</span>
+    <div class="entry-body">
+      <div class="entry-who row">
+        <span class="entry-name">{comment.userName}</span>
+        <span e:if={comment.isTeam} class="pill is-accent">Team</span>
+        <span class="entry-time">{timeAgo(comment.createdAt)}</span>
+        <button e:if={canDelete(comment)}
+                class="entry-delete is-ghost is-sm"
+                aria-label="Delete comment"
+                onclick={() => comments.delete(comment)}>Delete</button>
+      </div>
+      <p class="entry-text">{comment.body}</p>
+    </div>
+  </li>
+
+  <li e:elseif={comment.kind === "status"} class="event row">
+    <span class="event-mark" aria-hidden="true">
+      <svg width="12" height="12" viewBox="0 0 16 16" focusable="false">
+        <path d="M3 8h10M9 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span><strong>{comment.userName}</strong> moved this to</span>
+    <StatusPill status={comment.body} />
+    <span class="entry-time">{timeAgo(comment.createdAt)}</span>
+  </li>
+
+  <li e:else class="event row">
+    <span class="event-mark" aria-hidden="true">
+      <svg width="12" height="12" viewBox="0 0 16 16" focusable="false">
+        <path d="M4 3v3.5a3 3 0 0 0 3 3h5M4 13V9.5M10 7l2 2.5-2 2.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span><strong>{comment.userName}</strong> merged "{comment.body}" into this request</span>
+    <span class="entry-time">{timeAgo(comment.createdAt)}</span>
+  </li>
+</ThreadEntry>
+
+<Composer (
+  comments: LiveView<Comment>,
+  private draft: Draft = { body: "", error: "" },
+)>
+  <form class="composer stack is-sm" onsubmit={() => postComment(comments, draft)}>
+    <label for="comment" class="visually-hidden">Add a comment</label>
+    <textarea id="comment"
+              value={draft.body}
+              maxlength={MAX_COMMENT}
+              placeholder="Add a comment"
+              required></textarea>
+    <p e:if={draft.error} class="error" role="alert">{draft.error}</p>
+    <div class="composer-actions row">
+      <span class="text-xs text-ink-dim">Commenting as {session.get("userName")}</span>
+      <button type="submit" class="is-primary" disabled={!draft.body.trim()}>Comment</button>
+    </div>
+  </form>
+</Composer>
+
+<TeamPanel (
+  request: FeatureRequest,
+  requests: LiveView<FeatureRequest>,
+  private status: string = request.status,
+  private result: { error: string } = { error: "" },
+  private merge: MergeForm = { targetId: "", confirming: false, busy: false, error: "" },
+)>
+  <div class="card">
+    <div class="card-head">
+      <h2>Team</h2>
+    </div>
+    <div class="card-body stack is-lg">
+      <form class="stack is-sm" onsubmit={() => onStatus(request.id, status, result)}>
+        <label for="status">Status</label>
+        <select id="status" value={status}>
+          <option e:for={s of STATUSES} value={s}>{statusLabel(s)}</option>
+        </select>
+        <p e:if={result.error} class="error" role="alert">{result.error}</p>
+        <button type="submit" disabled={status === request.status}>Update status</button>
+        <p class="hint">Voters get an email when the status changes.</p>
+      </form>
+
+      <div class="divider is-soft"></div>
+
+      <div class="stack is-sm">
+        <label for="merge">Merge as a duplicate of</label>
+        <select id="merge" value={merge.targetId} onchange={() => merge.confirming = false}>
+          <option value="">Choose a request</option>
+          <option e:for={r of mergeCandidates(requests, request.id)} value={r.id}>{r.title}</option>
+        </select>
+        <p e:if={merge.error} class="error" role="alert">{merge.error}</p>
+
+        <button e:if={!merge.confirming}
+                disabled={!merge.targetId}
+                onclick={() => merge.confirming = true}>Merge</button>
+
+        <div e:else class="callout is-warning stack is-sm">
+          <p>
+            Move {plural(request.voteCount, "vote")} to
+            <strong>{requests.find((r) => r.id === merge.targetId)?.title}</strong> and close this request?
+          </p>
+          <div class="cluster is-sm">
+            <button class="is-danger is-sm" disabled={merge.busy} onclick={() => onMerge(request.id, merge)}>Merge</button>
+            <button class="is-ghost is-sm" onclick={() => merge.confirming = false}>Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</TeamPanel>

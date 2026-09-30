@@ -1,0 +1,164 @@
+@import "#app/shared/styles/page.css";
+
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: var(--space-10);
+  align-items: start;
+}
+
+.board-intro h1 {
+  margin-block: 0;
+  font-size: var(--text-4xl);
+  letter-spacing: -0.03em;
+}
+
+.board-intro .lede {
+  margin-block: 0;
+  max-width: 36rem;
+}
+
+.board-toolbar {
+  gap: var(--space-4);
+  justify-content: space-between;
+  border-bottom: 1px solid var(--rule);
+}
+
+.board-toolbar .tab-list {
+  border-bottom: 0;
+}
+
+.board-search {
+  max-width: 16rem;
+  margin-bottom: var(--space-2);
+}
+
+.request-list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.request-row {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--rule-soft, var(--rule));
+}
+
+.request-row:last-child {
+  border-bottom: 0;
+}
+
+.request-row-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.request-row-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.request-row-title:hover {
+  color: var(--accent-deep);
+}
+
+.request-row-desc {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-sm);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.request-row-meta {
+  font-size: var(--text-xs);
+  color: var(--ink-dim);
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.board-suggest {
+  display: none;
+}
+
+.board-empty {
+  padding: var(--space-10) var(--space-4);
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.board-side {
+  position: sticky;
+  top: 5rem;
+}
+
+.status-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.status-list button {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.status-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dim);
+}
+
+@media (max-width: 60rem) {
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .board-side {
+    display: none;
+  }
+
+  .board-suggest {
+    display: inline-flex;
+    align-self: flex-start;
+  }
+}
+
+@media (max-width: 45rem) {
+  .board-intro h1 {
+    font-size: var(--text-3xl);
+  }
+
+  .board-toolbar {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .board-search {
+    max-width: none;
+    width: 100%;
+  }
+
+  .status-chips {
+    display: flex;
+  }
+}
+
+@media (min-width: 60.01rem) {
+  .status-chips {
+    display: none;
+  }
+}

@@ -1,0 +1,150 @@
+import "./style.css";
+import { redirect } from "@elements/app";
+import favicon from "#app/shared/assets/favicons/favicon.svg";
+import { Layout } from "#app/shared/templates/layout";
+import { signin } from "#app/shared/services/auth";
+import { initials } from "#app/shared/services/format";
+
+export interface DemoLogin {
+  name: string;
+  email: string;
+  role: "customer" | "admin";
+}
+
+export const DEMO_PASSWORD = "wishcairn";
+
+export const DEMO_EMAILS = [
+  "maya@wishcairn.dev",
+  "theo@wishcairn.dev",
+  "priya@example.com",
+  "jonas@example.com",
+  "amara@example.com",
+  "lucas@example.com",
+  "hana@example.com",
+  "diego@example.com",
+  "erin@example.com",
+  "kofi@example.com",
+  "sofia@example.com",
+  "ben@example.com",
+];
+
+interface SigninForm {
+  email: string;
+  password: string;
+  error: string;
+  busy: boolean;
+}
+
+function onSubmit(form: SigninForm, next: string) {
+  form.busy = true;
+
+  try {
+    signin(form.email, form.password);
+    form.error = "";
+    redirect(next);
+  } catch (err: any) {
+    form.error = err.message;
+    form.busy = false;
+  }
+}
+
+function onDemo(form: SigninForm, login: DemoLogin, next: string) {
+  form.email = login.email;
+  form.password = DEMO_PASSWORD;
+  onSubmit(form, next);
+}
+
+<html lang="en" class="page-signin" (
+  next: string,
+  demo: DemoLogin[],
+  private form: SigninForm = { email: "", password: "", error: "", busy: false },
+)>
+  <head>
+    <title>Sign in · wishcairn</title>
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+  </head>
+  <body>
+    <Layout>
+      <div class="auth">
+        <div class="card">
+          <div class="card-body">
+            <form class="auth-form stack" onsubmit={() => onSubmit(form, next)}>
+              <div class="stack is-xs">
+                <h1>Sign in</h1>
+                <p class="text-ink-soft">Vote, comment, and hear when your requests move.</p>
+              </div>
+
+              <p e:if={form.error} class="error" role="alert">{form.error}</p>
+
+              <div class="field">
+                <label for="email">Email</label>
+                <input id="email"
+                       name="email"
+                       type="email"
+                       value={form.email}
+                       autocomplete="email"
+                       autocapitalize="none"
+                       spellcheck={false}
+                       placeholder="you@company.com"
+                       required>
+              </div>
+
+              <div class="field">
+                <label for="password">Password</label>
+                <input id="password"
+                       name="password"
+                       type="password"
+                       value={form.password}
+                       autocomplete="current-password"
+                       required>
+              </div>
+
+              <button type="submit" class="is-primary is-block" disabled={form.busy}>Sign in</button>
+
+              <p class="text-sm text-ink-soft">New here? <a href="/signup">Create an account</a></p>
+            </form>
+          </div>
+        </div>
+
+        <div e:if={demo.length > 0} class="card">
+          <div class="card-head">
+            <h2>Demo accounts</h2>
+          </div>
+          <div class="card-body stack">
+            <p class="text-sm text-ink-soft">
+              Every account's password is <code>{DEMO_PASSWORD}</code>. Pick one to sign in as that person.
+            </p>
+
+            <DemoGroup title="Team" logins={demo.filter((d) => d.role === "admin")} {form} {next} />
+            <DemoGroup title="Customers" logins={demo.filter((d) => d.role === "customer")} {form} {next} />
+          </div>
+        </div>
+      </div>
+    </Layout>
+  </body>
+</html>
+
+<DemoGroup (
+  title: string,
+  logins: DemoLogin[],
+  form: SigninForm,
+  next: string,
+)>
+  <div class="stack is-xs">
+    <p class="eyebrow">{title}</p>
+    <ul class="demo-list demo-grid">
+      <li e:for={login of logins}>
+        <button type="button"
+                class="demo-login is-ghost"
+                disabled={form.busy}
+                onclick={() => onDemo(form, login, next)}>
+          <span class={["avatar", login.role === "admin" && "is-team"]} aria-hidden="true">{initials(login.name)}</span>
+          <span class="demo-login-who">
+            <span>{login.name}</span>
+            <span class="demo-login-email">{login.email}</span>
+          </span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</DemoGroup>

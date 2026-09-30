@@ -1,0 +1,163 @@
+import "./style.css";
+import { LiveView, ValidationError, session } from "@elements/app";
+import favicon from "#app/shared/assets/favicons/favicon.svg";
+import { Layout } from "#app/shared/templates/layout";
+import { StatusPill } from "#app/shared/templates/request-bits";
+import { FeatureRequest } from "#app/shared/services/board";
+import { longDate } from "#app/shared/services/format";
+import { ChangelogEntry, ChangelogForm, postChangelog } from "./services";
+
+interface Compose {
+  form: ChangelogForm;
+  errors: Record<string, string[]>;
+  error: string;
+  busy: boolean;
+  open: boolean;
+}
+
+const ORDER: Record<string, number> = { in_progress: 0, planned: 1, under_review: 2, shipped: 3 };
+
+function emptyForm(): ChangelogForm {
+  return { title: "", version: "", body: "", requestIds: [], markShipped: true };
+}
+
+/** In progress first: those are what a release note usually ships. */
+export function linkable(requests: Iterable<FeatureRequest>): FeatureRequest[] {
+  return [...requests]
+    .filter((r) => !r.mergedIntoId && r.status !== "closed")
+    .sort((a, b) => (ORDER[a.status] ?? 9) - (ORDER[b.status] ?? 9) || a.title.localeCompare(b.title));
+}
+
+export function paragraphs(body: string): string[] {
+  return body.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+}
+
+function onPost(compose: Compose, setEntries: (entries: ChangelogEntry[]) => void) {
+  compose.busy = true;
+  compose.errors = {};
+  compose.error = "";
+
+  try {
+    setEntries(postChangelog(compose.form));
+    compose.form = emptyForm();
+    compose.open = false;
+  } catch (err: any) {
+    if (err instanceof ValidationError && typeof err.errors === "object") {
+      compose.errors = err.errors as Record<string, string[]>;
+    } else {
+      compose.error = err.message;
+    }
+  }
+
+  compose.busy = false;
+}
+
+<html lang="en" class="page-changelog" (
+  entries: ChangelogEntry[],
+  requests: LiveView<FeatureRequest>,
+  private compose: Compose = { form: emptyForm(), errors: {}, error: "", busy: false, open: false },
+)>
+  <head>
+    <title>Changelog · wishcairn</title>
+    <meta name="description" content="Release notes for Loomwork, and the requests each release shipped.">
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+  </head>
+  <body>
+    <Layout current="changelog" width="is-form">
+      <div class="stack is-xl">
+        <header class="changelog-intro stack is-sm">
+          <p class="eyebrow">Changelog</p>
+          <h1>What's new in Loomwork</h1>
+          <p class="lede">Release notes, and the requests from this board that each release delivered.</p>
+        </header>
+
+        <div e:if={session.get("role") === "admin"} class="card compose">
+          <div class="card-body stack">
+            <div class="row compose-actions">
+              <div class="stack is-xs">
+                <strong>Release notes</strong>
+                <span class="text-sm text-ink-soft">Posting notifies the voters of every request you mark shipped.</span>
+              </div>
+              <button e:if={!compose.open} class="is-primary is-sm" onclick={() => compose.open = true}>New entry</button>
+            </div>
+
+            <form e:if={compose.open} class="stack" onsubmit={() => onPost(compose, (e) => entries = e)}>
+              <p e:if={compose.error} class="error" role="alert">{compose.error}</p>
+
+              <div class="compose-row row is-start">
+                <div class="field compose-grow">
+                  <label for="entry-title">Title</label>
+                  <input id="entry-title"
+                         value={compose.form.title}
+                         class={[compose.errors.title && "is-error"]}
+                         placeholder="Timelines, and a faster search">
+                  <p e:if={compose.errors.title} class="error">{compose.errors.title?.[0]}</p>
+                </div>
+                <div class="field compose-version">
+                  <label for="entry-version">Version</label>
+                  <input id="entry-version" value={compose.form.version} placeholder="3.7">
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="entry-body">Notes</label>
+                <textarea id="entry-body"
+                          value={compose.form.body}
+                          class={[compose.errors.body && "is-error"]}
+                          placeholder="What changed, and what it means for customers. Separate paragraphs with a blank line."></textarea>
+                <p e:if={compose.errors.body} class="error">{compose.errors.body?.[0]}</p>
+              </div>
+
+              <div class="field">
+                <label>Requests this release ships</label>
+                <div class="link-picker stack is-xs">
+                  <label e:for={r of linkable(requests)}>
+                    <input type="checkbox" group={compose.form.requestIds} value={r.id}>
+                    <span>{r.title}</span>
+                    <StatusPill status={r.status} />
+                  </label>
+                </div>
+              </div>
+
+              <label>
+                <input type="checkbox" checked={compose.form.markShipped}>
+                Mark linked requests as shipped
+              </label>
+
+              <div class="row compose-actions">
+                <button type="button" class="is-ghost" onclick={() => compose.open = false}>Cancel</button>
+                <button type="submit" class="is-primary" disabled={compose.busy}>Publish</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <ol class="entries">
+          <li e:for={entry of entries} id={entry.id} class="entry-card">
+            <div class="stack is-xs">
+              <span e:if={entry.version} class="entry-version">v{entry.version}</span>
+              <time class="entry-date">{longDate(entry.publishedAt)}</time>
+            </div>
+
+            <article class="stack">
+              <h2>{entry.title}</h2>
+              <p e:for={p of paragraphs(entry.body)}>{p}</p>
+
+              <div e:if={entry.requests.length > 0} class="stack is-xs">
+                <p class="eyebrow">Requests shipped</p>
+                <div class="entry-links cluster is-xs">
+                  <a e:for={r of entry.requests} class="pill is-success" href={`/requests/${r.id}`}>
+                    <span class="pill-dot"></span>
+                    {r.title}
+                  </a>
+                </div>
+              </div>
+
+              <p class="text-sm text-ink-dim">Posted by {entry.authorName}</p>
+            </article>
+          </li>
+        </ol>
+      </div>
+    </Layout>
+  </body>
+</html>

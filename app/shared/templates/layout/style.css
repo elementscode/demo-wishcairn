@@ -1,0 +1,120 @@
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  border-bottom: 1px solid var(--rule);
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.site-header-inner {
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding-block: var(--space-3);
+}
+
+.site-brand {
+  gap: var(--space-2);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-lg);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-brand svg {
+  color: var(--accent);
+}
+
+.site-nav {
+  gap: var(--space-1);
+}
+
+.site-nav a {
+  padding: var(--space-1-5) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.site-nav a:hover {
+  color: var(--ink);
+  background: var(--bg-muted);
+}
+
+.site-nav a.is-active {
+  color: var(--ink);
+  background: var(--bg-muted);
+}
+
+.site-account {
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.site-user {
+  gap: var(--space-2);
+  color: var(--ink-soft);
+}
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--accent) 16%, var(--bg));
+  color: var(--accent-deep);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.02em;
+}
+
+.avatar.is-team {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.site-main {
+  padding-block: var(--space-10) var(--space-16);
+}
+
+.site-footer {
+  border-top: 1px solid var(--rule);
+  font-size: var(--text-sm);
+  color: var(--ink-dim);
+}
+
+.site-footer-inner {
+  justify-content: space-between;
+  padding-block: var(--space-6);
+}
+
+.pill.is-closed {
+  color: var(--ink-dim);
+  background: var(--bg-soft);
+}
+
+@media (max-width: 45rem) {
+  .site-header-inner {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .site-nav {
+    order: 3;
+    width: 100%;
+    margin-inline: calc(var(--space-3) * -1);
+  }
+
+  .site-user-name {
+    display: none;
+  }
+
+  .site-main {
+    padding-block: var(--space-6) var(--space-12);
+  }
+}
