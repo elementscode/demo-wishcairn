@@ -1,12 +1,12 @@
-![Wishcairn, a feature request board built with Elements: requests sorted by top with vote counts and status pills, and a status filter.](POSTER_URL)
+![Wishcairn, a feature request board built with Elements: requests sorted by top with vote counts and status pills, and a status filter.](https://elements.dev/demos/01a0f3eb-ef9c-73ed-9b4c-4e490c420ecc/poster?v=83d93d74fb28)
 
 # Wishcairn
 
 > A demo app built with [Elements](https://elements.dev).
 
-Feature requests customers vote and comment on live, with team statuses, duplicate merging, a public roadmap, a changelog, and emails to voters when a status changes.
+Feature requests with live votes and comments, statuses, merges, a public roadmap, a changelog and voter emails.
 
-**Demo:** [Wishcairn](TBD)
+**Demo:** [Wishcairn](https://elements.dev/demos/01a0f3eb-ef9c-73ed-9b4c-4e490c420ecc)
 
 ## Agent specs
 
