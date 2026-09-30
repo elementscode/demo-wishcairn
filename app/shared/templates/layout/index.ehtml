@@ -1,0 +1,67 @@
+import "./style.css";
+import { session, redirect } from "@elements/app";
+import { signout } from "#app/shared/services/auth";
+import { initials } from "#app/shared/services/format";
+
+export type Section = "board" | "roadmap" | "changelog" | "none";
+
+function onSignout() {
+  signout();
+  redirect("/");
+}
+
+<Layout (current: Section = "none", width: string = "")>
+  <div class="app">
+    <header class="site-header">
+      <div class="page-shell row site-header-inner">
+        <a class="site-brand row" href="/">
+          <CairnMark />
+          wishcairn
+        </a>
+
+        <nav class="site-nav row" aria-label="Main">
+          <a href="/" class={[current === "board" && "is-active"]}>Board</a>
+          <a href="/roadmap" class={[current === "roadmap" && "is-active"]}>Roadmap</a>
+          <a href="/changelog" class={[current === "changelog" && "is-active"]}>Changelog</a>
+        </nav>
+
+        <div class="site-account row">
+          <div e:if={session.isLoggedIn()} class="row site-account">
+            <span class="site-user row">
+              <span class={["avatar", session.get("role") === "admin" && "is-team"]} aria-hidden="true">
+                {initials(session.get("userName") ?? "")}
+              </span>
+              <span class="site-user-name">{session.get("userName")}</span>
+              <span e:if={session.get("role") === "admin"} class="pill is-accent">Team</span>
+            </span>
+            <button class="is-ghost is-sm" onclick={() => onSignout()}>Sign out</button>
+          </div>
+          <div e:else class="row site-account">
+            <a href="/signin">Sign in</a>
+            <a class="button is-primary is-sm" href="/signup">Sign up</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class={["app-main page-shell site-main", width]}>
+      <slot/>
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-shell row site-footer-inner">
+        <span>Loomwork feedback, on wishcairn</span>
+        <a href="/changelog">What's new</a>
+      </div>
+    </footer>
+  </div>
+</Layout>
+
+<CairnMark>
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <ellipse cx="12" cy="19.5" rx="9" ry="3" fill="currentColor"/>
+    <ellipse cx="12" cy="13.2" rx="6.4" ry="2.6" fill="currentColor" opacity="0.8"/>
+    <ellipse cx="12.6" cy="7.8" rx="4.2" ry="2.1" fill="currentColor" opacity="0.62"/>
+    <circle cx="11.8" cy="3.6" r="1.7" fill="currentColor" opacity="0.45"/>
+  </svg>
+</CairnMark>

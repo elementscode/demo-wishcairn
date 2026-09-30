@@ -1,0 +1,28 @@
+@import "#app/shared/styles/page.css";
+
+.new-request h1 {
+  margin: 0;
+  font-size: var(--text-3xl);
+  letter-spacing: -0.02em;
+}
+
+.new-request textarea {
+  min-height: 10rem;
+}
+
+.new-request-actions {
+  justify-content: flex-end;
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.back-link:hover {
+  color: var(--ink);
+}

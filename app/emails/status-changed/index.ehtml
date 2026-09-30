@@ -1,0 +1,41 @@
+import "./style.css";
+
+/**
+ * Sent to each voter when the team moves a request they voted for.
+ *
+ * @email
+ */
+<html (
+  name: string,
+  title: string,
+  statusLabel: string,
+  url: string,
+  mergedTitle: string = "",
+  mergedUrl: string = "",
+)>
+  <body class="email status-changed">
+    <div class="email-wrap">
+      <p class="brand">wishcairn</p>
+
+      <h1 e:if={mergedTitle}>A request you voted for was merged</h1>
+      <h1 e:else>A request you voted for is now {statusLabel.toLowerCase()}</h1>
+
+      <p>Hi {name},</p>
+
+      <p e:if={mergedTitle}>
+        The team merged <strong>{title}</strong> into
+        <a href={mergedUrl}>{mergedTitle}</a>, which is asking for the same thing.
+        Your vote moved with it, so you will hear about progress there.
+      </p>
+      <p e:else>
+        <strong>{title}</strong> moved to <span class="status">{statusLabel}</span>.
+      </p>
+
+      <p><a class="cta" href={mergedUrl || url}>See the request</a></p>
+
+      <div class="email-footer">
+        <p>You are getting this because you voted for this request on wishcairn.</p>
+      </div>
+    </div>
+  </body>
+</html>
