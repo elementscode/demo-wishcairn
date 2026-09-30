@@ -1,0 +1,85 @@
+import "./style.css";
+import { ValidationError } from "@elements/app";
+import favicon from "#app/shared/assets/favicons/favicon.svg";
+import { Layout } from "#app/shared/templates/layout";
+import { createRequest, MAX_TITLE, MAX_DESCRIPTION } from "#app/shared/services/board";
+
+interface RequestForm {
+  title: string;
+  description: string;
+  errors: Record<string, string[]>;
+  error: string;
+  busy: boolean;
+}
+
+function onSubmit(form: RequestForm) {
+  form.busy = true;
+  form.errors = {};
+  form.error = "";
+
+  try {
+    createRequest({ title: form.title, description: form.description });
+  } catch (err: any) {
+    if (err instanceof ValidationError && typeof err.errors === "object") {
+      form.errors = err.errors as Record<string, string[]>;
+    } else {
+      form.error = err.message;
+    }
+
+    form.busy = false;
+  }
+}
+
+<html lang="en" class="page-new-request" (
+  private form: RequestForm = { title: "", description: "", errors: {}, error: "", busy: false },
+)>
+  <head>
+    <title>Suggest a feature · wishcairn</title>
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+  </head>
+  <body>
+    <Layout current="board" width="is-form">
+      <form class="new-request stack is-lg" onsubmit={() => onSubmit(form)}>
+        <div class="stack is-xs">
+          <a class="back-link" href="/">
+            <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+              <path d="M10 3.5 5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            All requests
+          </a>
+          <h1>Suggest a feature</h1>
+          <p class="lede">Describe the problem you want solved. The best requests explain what you are trying to do and why it matters to your team.</p>
+        </div>
+
+        <p e:if={form.error} class="error" role="alert">{form.error}</p>
+
+        <div class="field">
+          <label for="title">Title</label>
+          <input id="title"
+                 value={form.title}
+                 maxlength={MAX_TITLE}
+                 class={[form.errors.title && "is-error"]}
+                 placeholder="A short summary, like: Export boards to CSV"
+                 required>
+          <p e:if={form.errors.title} class="error">{form.errors.title?.[0]}</p>
+        </div>
+
+        <div class="field">
+          <label for="description">Description</label>
+          <textarea id="description"
+                    value={form.description}
+                    maxlength={MAX_DESCRIPTION}
+                    class={[form.errors.description && "is-error"]}
+                    placeholder="What are you trying to do, and what gets in the way today?"></textarea>
+          <p e:if={form.errors.description} class="error">{form.errors.description?.[0]}</p>
+          <p e:else class="hint">Optional, but it helps the team and other customers understand the need.</p>
+        </div>
+
+        <div class="new-request-actions cluster">
+          <a class="button is-ghost" href="/">Cancel</a>
+          <button type="submit" class="is-primary" disabled={form.busy}>Post request</button>
+        </div>
+      </form>
+    </Layout>
+  </body>
+</html>

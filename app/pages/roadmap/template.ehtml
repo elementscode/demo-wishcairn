@@ -1,0 +1,80 @@
+import "./style.css";
+import { LiveView } from "@elements/app";
+import favicon from "#app/shared/assets/favicons/favicon.svg";
+import { Layout } from "#app/shared/templates/layout";
+import { VoteButton, StatusPill } from "#app/shared/templates/request-bits";
+import { FeatureRequest, Vote } from "#app/shared/services/board";
+import { Status } from "#app/shared/services/status";
+import { plural, timeAgo } from "#app/shared/services/format";
+
+interface Lane {
+  id: string;
+  status: Status;
+  title: string;
+  empty: string;
+}
+
+const LANES: Lane[] = [
+  { id: "planned", status: "planned", title: "Planned", empty: "Nothing planned yet." },
+  { id: "in_progress", status: "in_progress", title: "In progress", empty: "Nothing in progress right now." },
+  { id: "shipped", status: "shipped", title: "Shipped", empty: "Nothing shipped yet." },
+];
+
+/** Shipped reads as a history, newest first; the rest rank by demand. */
+export function laneRequests(requests: Iterable<FeatureRequest>, status: Status): FeatureRequest[] {
+  return [...requests]
+    .filter((r) => r.status === status && !r.mergedIntoId)
+    .sort((a, b) =>
+      status === "shipped"
+        ? +b.statusChangedAt - +a.statusChangedAt
+        : b.voteCount - a.voteCount || +b.createdAt - +a.createdAt,
+    );
+}
+
+<html lang="en" class="page-roadmap" (
+  requests: LiveView<FeatureRequest>,
+  votes?: LiveView<Vote> | undefined,
+)>
+  <head>
+    <title>Roadmap · wishcairn</title>
+    <meta name="description" content="What the Loomwork team has planned, is building, and has shipped.">
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+  </head>
+  <body>
+    <Layout current="roadmap">
+      <div class="stack is-xl">
+        <header class="roadmap-intro stack is-sm">
+          <p class="eyebrow">Roadmap</p>
+          <h1>What we're working on</h1>
+          <p class="lede">The requests the team has picked up, in the order they'll likely land. Vote to tell us what matters most.</p>
+        </header>
+
+        <div class="roadmap">
+          <section e:for={lane of LANES} class="lane stack" aria-labelledby={`lane-${lane.id}`}>
+            <div class="lane-head row">
+              <StatusPill status={lane.status} />
+              <span class="lane-count">{laneRequests(requests, lane.status).length}</span>
+            </div>
+            <h2 id={`lane-${lane.id}`} class="visually-hidden">{lane.title}</h2>
+
+            <ul e:if={laneRequests(requests, lane.status).length > 0} class="lane-list stack is-sm">
+              <li e:for={r of laneRequests(requests, lane.status)} class="card lane-card">
+                <div class="card-body">
+                  <VoteButton request={r} {votes} compact={true} />
+                  <div class="stack is-xs">
+                    <a class="lane-card-title" href={`/requests/${r.id}`}>{r.title}</a>
+                    <span class="lane-card-meta">
+                      {plural(r.commentCount, "comment")}
+                      {lane.status === "shipped" ? ` · shipped ${timeAgo(r.statusChangedAt)}` : ""}
+                    </span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+            <p e:else class="lane-empty">{lane.empty}</p>
+          </section>
+        </div>
+      </div>
+    </Layout>
+  </body>
+</html>

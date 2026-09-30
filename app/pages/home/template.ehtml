@@ -1,0 +1,182 @@
+import "./style.css";
+import { LiveView } from "@elements/app";
+import favicon from "#app/shared/assets/favicons/favicon.svg";
+import { Layout } from "#app/shared/templates/layout";
+import { VoteButton, StatusPill } from "#app/shared/templates/request-bits";
+import { FeatureRequest, Vote } from "#app/shared/services/board";
+import { STATUSES, statusLabel } from "#app/shared/services/status";
+import { timeAgo, plural } from "#app/shared/services/format";
+
+export interface BoardView {
+  sort: "top" | "new";
+  query: string;
+  status: string;
+}
+
+export const FILTERS = ["open", ...STATUSES, "all"];
+
+export function filterLabel(filter: string): string {
+  switch (filter) {
+    case "open":
+      return "All open";
+
+    case "all":
+      return "Everything";
+
+    default:
+      return statusLabel(filter);
+  }
+}
+
+function matchesFilter(request: FeatureRequest, filter: string): boolean {
+  switch (filter) {
+    case "open":
+      return request.status !== "closed";
+
+    case "all":
+      return true;
+
+    default:
+      return request.status === filter;
+  }
+}
+
+export function countFor(requests: Iterable<FeatureRequest>, filter: string): number {
+  let n = 0;
+
+  for (let r of requests) {
+    if (!r.mergedIntoId && matchesFilter(r, filter)) {
+      n++;
+    }
+  }
+
+  return n;
+}
+
+/** Top ranks by votes, newest first on a tie; New is newest first. */
+export function visibleRequests(requests: Iterable<FeatureRequest>, view: BoardView): FeatureRequest[] {
+  let q = view.query.trim().toLowerCase();
+  let rows = [...requests].filter((r) =>
+    !r.mergedIntoId &&
+    matchesFilter(r, view.status) &&
+    (!q || r.title.toLowerCase().includes(q) || r.description.toLowerCase().includes(q)),
+  );
+
+  return rows.sort((a, b) =>
+    view.sort === "top"
+      ? b.voteCount - a.voteCount || +b.createdAt - +a.createdAt
+      : +b.createdAt - +a.createdAt,
+  );
+}
+
+<html lang="en" class="page-home" (
+  requests: LiveView<FeatureRequest>,
+  votes?: LiveView<Vote> | undefined,
+  private view: BoardView = { sort: "top" as "top" | "new", query: "", status: "open" },
+)>
+  <head>
+    <title>wishcairn: Loomwork feedback</title>
+    <meta name="description" content="Suggest features for Loomwork, vote for the ones you want, and follow what the team ships.">
+    <link rel="icon" type="image/svg+xml" href={favicon} />
+  </head>
+  <body>
+    <Layout current="board">
+      <div class="board">
+        <section class="stack is-lg">
+          <header class="board-intro stack is-sm">
+            <p class="eyebrow">Loomwork feedback</p>
+            <h1>What should we build next?</h1>
+            <p class="lede">Suggest an idea, vote for the ones you want most, and follow along as the team ships them.</p>
+            <a class="button is-primary board-suggest" href="/requests/new">Suggest a feature</a>
+          </header>
+
+          <div class="board-toolbar row">
+            <div class="tab-list" role="tablist" aria-label="Sort">
+              <button role="tab"
+                      class={["tab", view.sort === "top" && "is-active"]}
+                      aria-selected={view.sort === "top"}
+                      onclick={() => view.sort = "top"}>Top</button>
+              <button role="tab"
+                      class={["tab", view.sort === "new" && "is-active"]}
+                      aria-selected={view.sort === "new"}
+                      onclick={() => view.sort = "new"}>New</button>
+            </div>
+
+            <input class="board-search is-sm"
+                   type="search"
+                   aria-label="Search requests"
+                   placeholder="Search requests"
+                   value={view.query}>
+          </div>
+
+          <div class="status-chips cluster is-xs" role="group" aria-label="Filter by status">
+            <button e:for={f of FILTERS}
+                    class={["is-sm", view.status !== f && "is-ghost"]}
+                    aria-pressed={view.status === f}
+                    onclick={() => view.status = f}>
+              {filterLabel(f)}
+            </button>
+          </div>
+
+          <ul class="request-list" e:if={visibleRequests(requests, view).length > 0}>
+            <RequestRow e:for={r of visibleRequests(requests, view)} request={r} {votes} />
+          </ul>
+
+          <div e:else class="board-empty stack is-sm">
+            <p e:if={view.query}>Nothing matches "{view.query}". Suggest it?</p>
+            <p e:else>No requests here yet.</p>
+            <div><a class="button is-primary" href="/requests/new">Suggest a feature</a></div>
+          </div>
+        </section>
+
+        <aside class="board-side stack">
+          <div class="card">
+            <div class="card-body stack is-sm">
+              <h2 class="text-md">Have an idea?</h2>
+              <p class="text-sm text-ink-soft">Tell us what would make Loomwork better for your team.</p>
+              <a class="button is-primary is-block" href="/requests/new">Suggest a feature</a>
+            </div>
+          </div>
+
+          <div class="card status-card">
+            <div class="card-body stack is-xs">
+              <p class="eyebrow">Status</p>
+              <ul class="status-list stack is-xs">
+                <li e:for={f of FILTERS}>
+                  <button class={["is-sm", view.status !== f && "is-ghost"]}
+                          aria-pressed={view.status === f}
+                          onclick={() => view.status = f}>
+                    <span>{filterLabel(f)}</span>
+                    <span class="status-count">{countFor(requests, f)}</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </Layout>
+  </body>
+</html>
+
+<RequestRow (request: FeatureRequest, votes?: LiveView<Vote> | undefined)>
+  <li class="request-row">
+    <VoteButton {request} {votes} />
+
+    <div class="request-row-body stack is-xs">
+      <a class="request-row-title" href={`/requests/${request.id}`}>{request.title}</a>
+      <p class="request-row-desc" e:if={request.description}>{request.description}</p>
+
+      <div class="request-row-meta cluster is-sm">
+        <StatusPill status={request.status} />
+        <span class="meta-item">
+          <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          {plural(request.commentCount, "comment")}
+        </span>
+        <span>{request.authorName} · {timeAgo(request.createdAt)}</span>
+      </div>
+    </div>
+  </li>
+</RequestRow>

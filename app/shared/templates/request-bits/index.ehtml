@@ -1,0 +1,53 @@
+import "./style.css";
+import { LiveView, redirect } from "@elements/app";
+import { FeatureRequest, Vote } from "#app/shared/services/board";
+import { statusLabel, statusPill } from "#app/shared/services/status";
+
+export function hasVoted(votes: LiveView<Vote> | undefined, requestId: string): boolean {
+  return !!votes?.find((v) => v.requestId === requestId);
+}
+
+/** A visitor is sent to sign in; a signed-in customer toggles their row. */
+export function toggleVote(votes: LiveView<Vote> | undefined, request: FeatureRequest) {
+  if (!votes) {
+    redirect(`/signin?next=${encodeURIComponent(window.location.pathname)}`);
+    return;
+  }
+
+  if (request.mergedIntoId) {
+    return;
+  }
+
+  let mine = votes.find((v) => v.requestId === request.id);
+
+  if (mine) {
+    votes.delete(mine);
+  } else {
+    votes.insert({ requestId: request.id });
+  }
+}
+
+<VoteButton (
+  request: FeatureRequest,
+  votes?: LiveView<Vote> | undefined,
+  compact: boolean = false,
+)>
+  <button class={["vote", hasVoted(votes, request.id) && "is-voted", compact && "is-compact"]}
+          aria-pressed={hasVoted(votes, request.id)}
+          aria-label={`${hasVoted(votes, request.id) ? "Remove your vote" : "Vote"} for ${request.title}, ${request.voteCount} votes`}
+          title={votes ? undefined : "Sign in to vote"}
+          disabled={!!request.mergedIntoId}
+          onclick={() => toggleVote(votes, request)}>
+    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M3.5 10.5 8 6l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="vote-count">{request.voteCount}</span>
+  </button>
+</VoteButton>
+
+<StatusPill (status: string)>
+  <span class={["pill", statusPill(status)]}>
+    <span class="pill-dot"></span>
+    {statusLabel(status)}
+  </span>
+</StatusPill>

@@ -1,0 +1,44 @@
+.vote {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-0-5);
+  flex: none;
+  width: 3.25rem;
+  height: 3.5rem;
+  padding: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.vote svg {
+  transition: transform var(--duration-fast, 120ms) ease;
+}
+
+.vote:hover:not(:disabled) svg {
+  transform: translateY(-2px);
+}
+
+.vote-count {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+}
+
+.vote.is-voted {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-deep);
+}
+
+.vote.is-compact {
+  flex-direction: row;
+  width: auto;
+  height: 1.75rem;
+  padding-inline: var(--space-2);
+  gap: var(--space-1);
+}
+
+.vote.is-compact .vote-count {
+  font-size: var(--text-xs);
+}
