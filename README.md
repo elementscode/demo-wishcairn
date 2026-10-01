@@ -29,11 +29,11 @@ Wishcairn needed votes and comments that show up on every open page, statuses an
 
 ### What Elements gave the app
 
-- **Live requests, votes and comments.** `requests`, `votes` and `comments` in `app/shared/services/board.ts` are LiveTables. Vote counts, status changes and merges are written in SQL, and the migration's triggers notify each table's channel, so the board, the roadmap and every open request page move together.
-- **Votes through a view.** A signed-in visitor opens their own votes with `myVotes()`, so voting is an insert or delete through that view, with the voter set from the session.
-- **Statuses and merges.** `setStatus` and `mergeRequest` are `@rpc` functions for the team. `applyStatus` moves a request, records the change in its thread and schedules `StatusChangedJob` in the same transaction, and a merge moves every vote onto the original request.
-- **Voter emails.** `StatusChangedJob` in `app/jobs/status-changed.ts` sends each voter their own `status-changed` email, naming the request a duplicate was merged into.
-- **A changelog tied to requests.** `postChangelog` in `app/pages/changelog/services.ts` publishes a release, links the requests it covers and can mark them shipped, which emails their voters and moves them on the roadmap.
+- **Live requests, votes and comments.** Requests, votes and comments are LiveTables. Vote counts, status changes and merges are written in SQL, and triggers notify each table's channel, so the board, the roadmap and every open request page move together.
+- **Votes through a view.** A signed-in visitor opens their own votes as a view, so voting is an insert or delete through it, with the voter set from the session.
+- **Statuses and merges.** The team moves and merges requests with `@rpc` functions. A status change is recorded in the request's thread and schedules the voter email in the same transaction, and a merge moves every vote onto the original request.
+- **Voter emails.** A background job sends each voter their own email, naming the request a duplicate was merged into.
+- **A changelog tied to requests.** Publishing a release links the requests it covers and can mark them shipped, which emails their voters and moves them on the roadmap.
 - **Data from SQL files.** Two migrations define the board and its triggers, then seed the feedback board for a team workspace app: 12 accounts, 30 requests across every status, votes, comment threads, a merged duplicate and three changelog entries.
 
 ### What the project server gave the agent
@@ -43,8 +43,6 @@ The project server runs alongside the agent and answers as soon as a file is sav
 ### What shipped
 
 The app type-checks with zero errors and all 36 tests pass. Every page works on desktop and phone, and live updates arrive across tabs, such as votes, comments and a roadmap that moves when a release ships.
-
-Start in `app/shared/services/board.ts`.
 
 ## Demo accounts
 
