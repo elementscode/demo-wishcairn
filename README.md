@@ -30,10 +30,15 @@ Wishcairn needed votes and comments that show up on every open page, statuses an
 ### What Elements gave the app
 
 - **Live requests, votes and comments.** Requests, votes and comments are LiveTables. Vote counts, status changes and merges are written in SQL, and triggers notify each table's channel, so the board, the roadmap and every open request page move together.
+
 - **Votes through a view.** A signed-in visitor opens their own votes as a view, so voting is an insert or delete through it, with the voter set from the session.
+
 - **Statuses and merges.** The team moves and merges requests with `@rpc` functions. A status change is recorded in the request's thread and schedules the voter email in the same transaction, and a merge moves every vote onto the original request.
+
 - **Voter emails.** A background job sends each voter their own email, naming the request a duplicate was merged into.
+
 - **A changelog tied to requests.** Publishing a release links the requests it covers and can mark them shipped, which emails their voters and moves them on the roadmap.
+
 - **Data from SQL files.** Two migrations define the board and its triggers, then seed the feedback board for a team workspace app: 12 accounts, 30 requests across every status, votes, comment threads, a merged duplicate and three changelog entries.
 
 ### What the project server gave the agent
