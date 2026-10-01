@@ -42,7 +42,7 @@ The project server runs alongside the agent and answers as soon as a file is sav
 
 ### What shipped
 
-The app type-checks with zero errors and all 36 tests pass. During the build the agent published a changelog entry and watched the roadmap update live. Every page was checked on desktop and phone before publishing.
+The app type-checks with zero errors and all 36 tests pass. Every page works on desktop and phone, and live updates arrive across tabs, such as votes, comments and a roadmap that moves when a release ships.
 
 Start in `app/shared/services/board.ts`.
 
