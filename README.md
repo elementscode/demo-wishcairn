@@ -23,6 +23,29 @@ app.
 elements create wishcairn -scaffold=elementscode/demo-wishcairn
 ```
 
+## How it's built
+
+Wishcairn needed votes and comments that show up on every open page, statuses and merges run by the team, a public roadmap and changelog, and email to voters when their request moves. Each of those is a part of Elements, so the agent spent its 19 minutes on the board itself.
+
+### What Elements gave the app
+
+- **Live requests, votes and comments.** `requests`, `votes` and `comments` in `app/shared/services/board.ts` are LiveTables. Vote counts, status changes and merges are written in SQL, and the migration's triggers notify each table's channel, so the board, the roadmap and every open request page move together.
+- **Votes through a view.** A signed-in visitor opens their own votes with `myVotes()`, so voting is an insert or delete through that view, with the voter set from the session.
+- **Statuses and merges.** `setStatus` and `mergeRequest` are `@rpc` functions for the team. `applyStatus` moves a request, records the change in its thread and schedules `StatusChangedJob` in the same transaction, and a merge moves every vote onto the original request.
+- **Voter emails.** `StatusChangedJob` in `app/jobs/status-changed.ts` sends each voter their own `status-changed` email, naming the request a duplicate was merged into.
+- **A changelog tied to requests.** `postChangelog` in `app/pages/changelog/services.ts` publishes a release, links the requests it covers and can mark them shipped, which emails their voters and moves them on the roadmap.
+- **Data from SQL files.** Two migrations define the board and its triggers, then seed the feedback board for a team workspace app: 12 accounts, 30 requests across every status, votes, comment threads, a merged duplicate and three changelog entries.
+
+### What the project server gave the agent
+
+The project server runs alongside the agent and answers as soon as a file is saved: it type-checks the templates, TypeScript and SQL, applies migrations and reruns the tests, so every question came back right away and the agent kept building.
+
+### What shipped
+
+The app type-checks with zero errors and all 36 tests pass. During the build the agent published a changelog entry and watched the roadmap update live. Every page was checked on desktop and phone before publishing, and the repo was installed fresh from GitHub and run before the demo went live.
+
+Start in `app/shared/services/board.ts`.
+
 ## Demo accounts
 
 The seed is the feedback board for Loomwork, a made-up team workspace app: 30
