@@ -10,9 +10,6 @@ Feature requests with live votes and comments, statuses, merges, a public roadma
 
 ## Agent specs
 
-What one run of the prompt below took, from an empty Elements project to this
-app.
-
 - **Agent:** Claude Code, Opus 5.5 Medium
 - **Time:** 19 min
 - **Cost:** $6.24 at API rates, September 2026
@@ -73,29 +70,7 @@ them. In development, status-change emails are written to
 | sofia@example.com   | customer |
 | ben@example.com     | customer |
 
-## The prompt
-
-```text
-Build a product feedback board named wishcairn for a software company.
-
-CUSTOMER
-- Sign up, submit a feature request with a title and description.
-- Browse requests, sort by top or new, search, and upvote.
-- Comment on requests.
-- Get an email when a request they voted on changes status.
-
-TEAM (admin accounts)
-- Set status: under review, planned, in progress, shipped, closed.
-- Merge duplicate requests, which moves their votes.
-- A public roadmap page with planned, in progress and shipped columns.
-- A changelog: post release notes, link the requests they ship.
-
-Seed two admins, ten customers, thirty requests across statuses with votes and
-comments, and three changelog entries. Show the seeded logins on the sign-in
-page.
-
-Votes, comments and status changes update in real time.
-```
+**Demo:** [Wishcairn](https://elements.dev/demos/01a0f3eb-ef9c-73ed-9b4c-4e490c420ecc)
 
 ## License
 
