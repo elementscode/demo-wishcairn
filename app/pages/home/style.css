@@ -47,7 +47,7 @@
   gap: var(--space-4);
   align-items: flex-start;
   padding-block: var(--space-4);
-  border-bottom: 1px solid var(--rule-soft, var(--rule));
+  border-bottom: 1px solid var(--rule-soft);
 }
 
 .request-row:last-child {

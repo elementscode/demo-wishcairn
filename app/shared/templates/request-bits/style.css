@@ -12,7 +12,7 @@
 }
 
 .vote svg {
-  transition: transform var(--duration-fast, 120ms) ease;
+  transition: transform var(--duration-fast) ease;
 }
 
 .vote:hover:not(:disabled) svg {
