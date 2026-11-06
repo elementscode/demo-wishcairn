@@ -113,6 +113,10 @@
   color: var(--ink-dim);
 }
 
+.status-chips {
+  flex-wrap: wrap;
+}
+
 @media (max-width: 60rem) {
   .board {
     grid-template-columns: minmax(0, 1fr);
@@ -143,10 +147,6 @@
     max-width: none;
     width: 100%;
   }
-}
-
-.status-chips {
-  flex-wrap: wrap;
 }
 
 @media (min-width: 60.01rem) {

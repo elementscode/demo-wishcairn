@@ -114,6 +114,11 @@
   color: var(--ink-soft);
 }
 
+.event .entry-time {
+  flex: none;
+  white-space: nowrap;
+}
+
 .composer-actions {
   justify-content: space-between;
 }
@@ -156,9 +161,4 @@
   .detail-head h1 {
     font-size: var(--text-2xl);
   }
-}
-
-.event .entry-time {
-  flex: none;
-  white-space: nowrap;
 }
