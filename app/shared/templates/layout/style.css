@@ -60,9 +60,9 @@
 }
 
 /* Team members carry the brand on their avatar. */
-.avatar.is-team .avatar-fallback {
-  background: var(--accent);
-  color: var(--accent-ink);
+.avatar.is-team {
+  --avatar-fallback-bg: var(--accent);
+  --avatar-fallback-ink: var(--accent-ink);
 }
 
 .site-main {
