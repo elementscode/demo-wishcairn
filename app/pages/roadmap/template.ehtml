@@ -63,11 +63,11 @@ export function lanes(requests: Iterable<FeatureRequest>): Record<string, Featur
           <p class="lede">The requests the team has picked up, in the order they'll likely land. Vote to tell us what matters most.</p>
         </header>
 
-        <Kanban value={lanes(requests)} label="Roadmap" class="roadmap">
+        <Kanban value={lanes(requests)} label="Roadmap">
           <KanbanNav>
             <KanbanNavItem e:for={lane of LANES} e:key={(l) => l.id} value={lane.id}>{lane.title}</KanbanNavItem>
           </KanbanNav>
-          <KanbanBoard>
+          <KanbanBoard fill>
             <KanbanColumn e:for={lane of LANES}
                           e:key={(l) => l.id}
                           value={lane.id}

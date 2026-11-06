@@ -11,11 +11,6 @@
   max-width: 38rem;
 }
 
-/* Three lanes share the page width. */
-.roadmap {
-  --kanban-column-width: calc((100% - 2 * var(--surface-gap)) / 3);
-}
-
 .lane-head {
   justify-content: space-between;
 }
