@@ -24,8 +24,9 @@
   border-bottom: 1px solid var(--rule);
 }
 
+/* The toolbar draws the rule under the tabs and the search together. */
 .board-toolbar .tab-list {
-  border-bottom: 0;
+  box-shadow: none;
 }
 
 .board-search {
@@ -94,25 +95,16 @@
   display: none;
 }
 
-.board-empty {
-  padding: var(--space-10) var(--space-4);
-  text-align: center;
-  color: var(--ink-soft);
-}
-
 .board-side {
   position: sticky;
   top: 5rem;
 }
 
 .status-list {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+  width: 100%;
 }
 
-.status-list button {
-  width: 100%;
+.status-list .toggle-group-item {
   justify-content: space-between;
 }
 
@@ -151,10 +143,10 @@
     max-width: none;
     width: 100%;
   }
+}
 
-  .status-chips {
-    display: flex;
-  }
+.status-chips {
+  flex-wrap: wrap;
 }
 
 @media (min-width: 60.01rem) {

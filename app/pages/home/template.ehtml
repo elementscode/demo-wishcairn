@@ -6,9 +6,15 @@ import { VoteButton, StatusPill } from "#app/shared/templates/request-bits";
 import { FeatureRequest, Vote } from "#app/shared/services/board";
 import { STATUSES, statusLabel } from "#app/shared/services/status";
 import { timeAgo, plural } from "#app/shared/services/format";
+import { Button } from "@elements/ui/button";
+import { Card, CardContent } from "@elements/ui/card";
+import { Empty, EmptyContent } from "@elements/ui/empty";
+import { Input } from "@elements/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@elements/ui/tabs";
+import { ToggleGroup, ToggleGroupItem } from "@elements/ui/toggle-group";
 
 export interface BoardView {
-  sort: "top" | "new";
+  sort: string;
   query: string;
   status: string;
 }
@@ -53,6 +59,13 @@ export function countFor(requests: Iterable<FeatureRequest>, filter: string): nu
   return n;
 }
 
+/** A status filter is always on: pressing the current one keeps it. */
+function keepFilter(value: string, details: { cancel(): void }) {
+  if (!value) {
+    details.cancel();
+  }
+}
+
 /** Top ranks by votes, newest first on a tie; New is newest first. */
 export function visibleRequests(requests: Iterable<FeatureRequest>, view: BoardView): FeatureRequest[] {
   let q = view.query.trim().toLowerCase();
@@ -72,7 +85,7 @@ export function visibleRequests(requests: Iterable<FeatureRequest>, view: BoardV
 <html lang="en" class="page-home" (
   requests: LiveView<FeatureRequest>,
   votes?: LiveView<Vote> | undefined,
-  private view: BoardView = { sort: "top" as "top" | "new", query: "", status: "open" },
+  private view: BoardView = { sort: "top", query: "", status: "open" },
 )>
   <head>
     <title>wishcairn: Loomwork feedback</title>
@@ -87,72 +100,71 @@ export function visibleRequests(requests: Iterable<FeatureRequest>, view: BoardV
             <p class="eyebrow">Loomwork feedback</p>
             <h1>What should we build next?</h1>
             <p class="lede">Suggest an idea, vote for the ones you want most, and follow along as the team ships them.</p>
-            <a class="button is-primary board-suggest" href="/requests/new">Suggest a feature</a>
+            <Button variant="primary" href="/requests/new" class="board-suggest">Suggest a feature</Button>
           </header>
 
           <div class="board-toolbar row">
-            <div class="tab-list" role="tablist" aria-label="Sort">
-              <button role="tab"
-                      class={["tab", view.sort === "top" && "is-active"]}
-                      aria-selected={view.sort === "top"}
-                      onclick={() => view.sort = "top"}>Top</button>
-              <button role="tab"
-                      class={["tab", view.sort === "new" && "is-active"]}
-                      aria-selected={view.sort === "new"}
-                      onclick={() => view.sort = "new"}>New</button>
-            </div>
+            <Tabs value={view.sort}>
+              <TabsList label="Sort">
+                <TabsTrigger value="top">Top</TabsTrigger>
+                <TabsTrigger value="new">New</TabsTrigger>
+              </TabsList>
+            </Tabs>
 
-            <input class="board-search is-sm"
+            <Input class="board-search"
+                   size="sm"
                    type="search"
-                   aria-label="Search requests"
                    placeholder="Search requests"
-                   value={view.query}>
+                   value={view.query}
+                   attrs={{ "aria-label": "Search requests" }} />
           </div>
 
-          <div class="status-chips cluster is-xs" role="group" aria-label="Filter by status">
-            <button e:for={f of FILTERS}
-                    class={["is-sm", view.status !== f && "is-ghost"]}
-                    aria-pressed={view.status === f}
-                    onclick={() => view.status = f}>
-              {filterLabel(f)}
-            </button>
-          </div>
+          <ToggleGroup class="status-chips"
+                       value={view.status}
+                       onValueChange={keepFilter}
+                       size="sm"
+                       spacing={1}
+                       label="Filter by status">
+            <ToggleGroupItem e:for={f of FILTERS} value={f}>{filterLabel(f)}</ToggleGroupItem>
+          </ToggleGroup>
 
           <ul class="request-list" e:if={visibleRequests(requests, view).length > 0}>
             <RequestRow e:for={r of visibleRequests(requests, view)} request={r} {votes} />
           </ul>
 
-          <div e:else class="board-empty stack is-sm">
-            <p e:if={view.query}>Nothing matches "{view.query}". Suggest it?</p>
-            <p e:else>No requests here yet.</p>
-            <div><a class="button is-primary" href="/requests/new">Suggest a feature</a></div>
-          </div>
+          <Empty e:else description={view.query ? `Nothing matches "${view.query}". Suggest it?` : "No requests here yet."}>
+            <EmptyContent>
+              <Button variant="primary" href="/requests/new">Suggest a feature</Button>
+            </EmptyContent>
+          </Empty>
         </section>
 
         <aside class="board-side stack">
-          <div class="card">
-            <div class="card-body stack is-sm">
+          <Card>
+            <CardContent class="stack is-sm">
               <h2 class="text-md">Have an idea?</h2>
               <p class="text-sm text-ink-soft">Tell us what would make Loomwork better for your team.</p>
-              <a class="button is-primary is-block" href="/requests/new">Suggest a feature</a>
-            </div>
-          </div>
+              <Button variant="primary" href="/requests/new" block>Suggest a feature</Button>
+            </CardContent>
+          </Card>
 
-          <div class="card status-card">
-            <div class="card-body stack is-xs">
-              <p class="eyebrow">Status</p>
-              <ul class="status-list stack is-xs">
-                <li e:for={f of FILTERS}>
-                  <button class={["is-sm", view.status !== f && "is-ghost"]}
-                          aria-pressed={view.status === f}
-                          onclick={() => view.status = f}>
-                    <span>{filterLabel(f)}</span>
-                    <span class="status-count">{countFor(requests, f)}</span>
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </div>
+          <Card>
+            <CardContent class="stack is-xs">
+              <p class="eyebrow" id="status-filter">Status</p>
+              <ToggleGroup class="status-list"
+                           value={view.status}
+                           onValueChange={keepFilter}
+                           orientation="vertical"
+                           size="sm"
+                           spacing={1}
+                           attrs={{ "aria-labelledby": "status-filter" }}>
+                <ToggleGroupItem e:for={f of FILTERS} value={f}>
+                  <span>{filterLabel(f)}</span>
+                  <span class="status-count">{countFor(requests, f)}</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
+            </CardContent>
+          </Card>
         </aside>
       </div>
     </Layout>
