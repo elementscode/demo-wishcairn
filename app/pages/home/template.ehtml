@@ -6,6 +6,7 @@ import { VoteButton, StatusPill } from "#app/shared/templates/request-bits";
 import { FeatureRequest, Vote } from "#app/shared/services/board";
 import { STATUSES, statusLabel } from "#app/shared/services/status";
 import { timeAgo, plural } from "#app/shared/services/format";
+import type { ChangeDetails } from "@elements/ui/behaviors";
 import { Button } from "@elements/ui/button";
 import { Card, CardContent } from "@elements/ui/card";
 import { Empty, EmptyContent } from "@elements/ui/empty";
@@ -60,7 +61,7 @@ export function countFor(requests: Iterable<FeatureRequest>, filter: string): nu
 }
 
 /** A status filter is always on: pressing the current one keeps it. */
-function keepFilter(value: string, details: { cancel(): void }) {
+function keepFilter(value: string, details: ChangeDetails) {
   if (!value) {
     details.cancel();
   }
