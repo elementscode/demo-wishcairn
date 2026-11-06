@@ -2,6 +2,7 @@ import "./style.css";
 import { LiveView, redirect } from "@elements/app";
 import { FeatureRequest, Vote } from "#app/shared/services/board";
 import { Badge } from "@elements/ui/badge";
+import { Toggle } from "@elements/ui/toggle";
 import { statusLabel, statusVariant } from "#app/shared/services/status";
 
 export function hasVoted(votes: LiveView<Vote> | undefined, requestId: string): boolean {
@@ -33,17 +34,18 @@ export function toggleVote(votes: LiveView<Vote> | undefined, request: FeatureRe
   votes?: LiveView<Vote> | undefined,
   compact: boolean = false,
 )>
-  <button class={["vote", hasVoted(votes, request.id) && "is-voted", compact && "is-compact"]}
-          aria-pressed={hasVoted(votes, request.id)}
-          aria-label={`${hasVoted(votes, request.id) ? "Remove your vote" : "Vote"} for ${request.title}, ${request.voteCount} votes`}
-          title={votes ? undefined : "Sign in to vote"}
+  <Toggle variant="outline"
+          class={["vote", compact && "is-compact"].filter(Boolean).join(" ")}
+          pressed={hasVoted(votes, request.id)}
+          label={`${hasVoted(votes, request.id) ? "Remove your vote" : "Vote"} for ${request.title}, ${request.voteCount} votes`}
           disabled={!!request.mergedIntoId}
-          onclick={() => toggleVote(votes, request)}>
+          attrs={{ title: votes ? undefined : "Sign in to vote" }}
+          onPressedChange={(_, details) => { details.cancel(); toggleVote(votes, request); }}>
     <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
       <path d="M3.5 10.5 8 6l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <span class="vote-count">{request.voteCount}</span>
-  </button>
+  </Toggle>
 </VoteButton>
 
 <StatusPill (status: string)>
