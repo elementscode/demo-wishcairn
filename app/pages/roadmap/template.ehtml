@@ -6,6 +6,8 @@ import { VoteButton, StatusPill } from "#app/shared/templates/request-bits";
 import { FeatureRequest, Vote } from "#app/shared/services/board";
 import { Status } from "#app/shared/services/status";
 import { plural, timeAgo } from "#app/shared/services/format";
+import { Empty } from "@elements/ui/empty";
+import { Kanban, KanbanBoard, KanbanColumn, KanbanItem, KanbanNav, KanbanNavItem } from "@elements/ui/kanban";
 
 interface Lane {
   id: string;
@@ -31,6 +33,18 @@ export function laneRequests(requests: Iterable<FeatureRequest>, status: Status)
     );
 }
 
+/** The board's columns: each lane's requests, in lane order. */
+export function lanes(requests: Iterable<FeatureRequest>): Record<string, FeatureRequest[]> {
+  let all = [...requests];
+  let out: Record<string, FeatureRequest[]> = {};
+
+  for (let lane of LANES) {
+    out[lane.id] = laneRequests(all, lane.status);
+  }
+
+  return out;
+}
+
 <html lang="en" class="page-roadmap" (
   requests: LiveView<FeatureRequest>,
   votes?: LiveView<Vote> | undefined,
@@ -49,31 +63,39 @@ export function laneRequests(requests: Iterable<FeatureRequest>, status: Status)
           <p class="lede">The requests the team has picked up, in the order they'll likely land. Vote to tell us what matters most.</p>
         </header>
 
-        <div class="roadmap">
-          <section e:for={lane of LANES} class="lane stack" aria-labelledby={`lane-${lane.id}`}>
-            <div class="lane-head row">
-              <StatusPill status={lane.status} />
-              <span class="lane-count">{laneRequests(requests, lane.status).length}</span>
-            </div>
-            <h2 id={`lane-${lane.id}`} class="visually-hidden">{lane.title}</h2>
+        <Kanban value={lanes(requests)} label="Roadmap" class="roadmap">
+          <KanbanNav>
+            <KanbanNavItem e:for={lane of LANES} e:key={(l) => l.id} value={lane.id}>{lane.title}</KanbanNavItem>
+          </KanbanNav>
+          <KanbanBoard>
+            <KanbanColumn e:for={lane of LANES}
+                          e:key={(l) => l.id}
+                          value={lane.id}
+                          label={lane.title}>
+              <div slot="header" class="kanban-column-header lane-head">
+                <StatusPill status={lane.status} />
+                <span class="kanban-column-count">{laneRequests(requests, lane.status).length}</span>
+              </div>
 
-            <ul e:if={laneRequests(requests, lane.status).length > 0} class="lane-list stack is-sm">
-              <li e:for={r of laneRequests(requests, lane.status)} class="card lane-card">
-                <div class="card-body">
-                  <VoteButton request={r} {votes} compact={true} />
-                  <div class="stack is-xs">
-                    <a class="lane-card-title" href={`/requests/${r.id}`}>{r.title}</a>
-                    <span class="lane-card-meta">
-                      {plural(r.commentCount, "comment")}
-                      {lane.status === "shipped" ? ` · shipped ${timeAgo(r.statusChangedAt)}` : ""}
-                    </span>
-                  </div>
+              <KanbanItem e:for={r of laneRequests(requests, lane.status)}
+                          e:key={(r) => r.id}
+                          value={r.id}
+                          label={r.title}
+                          class="lane-card">
+                <VoteButton request={r} {votes} compact={true} />
+                <div class="stack is-xs">
+                  <a class="lane-card-title" href={`/requests/${r.id}`}>{r.title}</a>
+                  <span class="lane-card-meta">
+                    {plural(r.commentCount, "comment")}
+                    {lane.status === "shipped" ? ` · shipped ${timeAgo(r.statusChangedAt)}` : ""}
+                  </span>
                 </div>
-              </li>
-            </ul>
-            <p e:else class="lane-empty">{lane.empty}</p>
-          </section>
-        </div>
+              </KanbanItem>
+
+              <Empty slot="footer" e:if={laneRequests(requests, lane.status).length === 0} description={lane.empty} />
+            </KanbanColumn>
+          </KanbanBoard>
+        </Kanban>
       </div>
     </Layout>
   </body>
