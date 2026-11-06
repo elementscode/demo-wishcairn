@@ -62,7 +62,7 @@ function onSubmit(form: RequestForm) {
           <Input value={form.title}
                  placeholder="A short summary, like: Export boards to CSV"
                  required
-                 attrs={{ id: "title", maxlength: MAX_TITLE }} />
+                 attrs={{ maxlength: MAX_TITLE }} />
         </Field>
 
         <Field label="Description"
@@ -71,8 +71,7 @@ function onSubmit(form: RequestForm) {
           <Textarea value={form.description}
                     rows={6}
                     maxlength={MAX_DESCRIPTION}
-                    placeholder="What are you trying to do, and what gets in the way today?"
-                    attrs={{ id: "description" }} />
+                    placeholder="What are you trying to do, and what gets in the way today?" />
         </Field>
 
         <div class="new-request-actions cluster">

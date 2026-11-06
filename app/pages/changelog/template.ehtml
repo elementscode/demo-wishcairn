@@ -96,18 +96,16 @@ function onPost(compose: Compose, setEntries: (entries: ChangelogEntry[]) => voi
               <div class="compose-row row is-start">
                 <Field label="Title" error={compose.errors.title?.[0] ?? ""} class="compose-grow">
                   <Input value={compose.form.title}
-                         placeholder="Timelines, and a faster search"
-                         attrs={{ id: "entry-title" }} />
+                         placeholder="Timelines, and a faster search" />
                 </Field>
                 <Field label="Version" class="compose-version">
-                  <Input value={compose.form.version} placeholder="3.7" attrs={{ id: "entry-version" }} />
+                  <Input value={compose.form.version} placeholder="3.7" />
                 </Field>
               </div>
 
               <Field label="Notes" error={compose.errors.body?.[0] ?? ""}>
                 <Textarea value={compose.form.body}
-                          placeholder="What changed, and what it means for customers. Separate paragraphs with a blank line."
-                          attrs={{ id: "entry-body" }} />
+                          placeholder="What changed, and what it means for customers. Separate paragraphs with a blank line." />
               </Field>
 
               <FieldSet>

@@ -88,7 +88,7 @@ function onDemo(form: SigninForm, login: DemoLogin, next: string) {
                        name="email"
                        value={form.email}
                        placeholder="you@company.com"
-                       attrs={{ id: "email", autocomplete: "email", autocapitalize: "none", spellcheck: "false" }} />
+                       attrs={{ autocomplete: "email", autocapitalize: "none", spellcheck: "false" }} />
               </Field>
 
               <Field label="Password">
@@ -96,7 +96,7 @@ function onDemo(form: SigninForm, login: DemoLogin, next: string) {
                        required
                        name="password"
                        value={form.password}
-                       attrs={{ id: "password", autocomplete: "current-password" }} />
+                       attrs={{ autocomplete: "current-password" }} />
               </Field>
 
               <Button type="submit" variant="primary" block loading={form.busy}>Sign in</Button>
