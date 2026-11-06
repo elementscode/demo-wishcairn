@@ -48,10 +48,6 @@
   line-height: var(--leading-relaxed);
 }
 
-.entry-links a {
-  text-decoration: none;
-}
-
 .link-picker {
   max-height: 16rem;
   overflow-y: auto;
