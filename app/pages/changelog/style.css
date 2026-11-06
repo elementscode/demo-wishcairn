@@ -52,10 +52,6 @@
   text-decoration: none;
 }
 
-.compose summary {
-  font-weight: var(--weight-semibold);
-}
-
 .link-picker {
   max-height: 16rem;
   overflow-y: auto;
@@ -64,10 +60,11 @@
   border-radius: var(--radius-md);
 }
 
-.link-picker label {
-  display: flex;
-  gap: var(--space-2);
-  align-items: center;
+.link-picker .checkbox-group {
+  align-items: stretch;
+}
+
+.link-picker .label {
   font-size: var(--text-sm);
 }
 

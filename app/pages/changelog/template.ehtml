@@ -6,6 +6,15 @@ import { StatusPill } from "#app/shared/templates/request-bits";
 import { FeatureRequest } from "#app/shared/services/board";
 import { longDate } from "#app/shared/services/format";
 import { ChangelogEntry, ChangelogForm, postChangelog } from "./services";
+import { Alert } from "@elements/ui/alert";
+import { Badge } from "@elements/ui/badge";
+import { Button } from "@elements/ui/button";
+import { Card, CardContent } from "@elements/ui/card";
+import { Checkbox, CheckboxGroup } from "@elements/ui/checkbox";
+import { Field, FieldSet, FieldLegend } from "@elements/ui/field";
+import { Input } from "@elements/ui/input";
+import { Label } from "@elements/ui/label";
+import { Textarea } from "@elements/ui/textarea";
 
 interface Compose {
   form: ChangelogForm;
@@ -71,66 +80,61 @@ function onPost(compose: Compose, setEntries: (entries: ChangelogEntry[]) => voi
           <p class="lede">Release notes, and the requests from this board that each release delivered.</p>
         </header>
 
-        <div e:if={session.get("role") === "admin"} class="card compose">
-          <div class="card-body stack">
+        <Card e:if={session.get("role") === "admin"} class="compose">
+          <CardContent class="stack">
             <div class="row compose-actions">
               <div class="stack is-xs">
                 <strong>Release notes</strong>
                 <span class="text-sm text-ink-soft">Posting notifies the voters of every request you mark shipped.</span>
               </div>
-              <button e:if={!compose.open} class="is-primary is-sm" onclick={() => compose.open = true}>New entry</button>
+              <Button e:if={!compose.open} variant="primary" size="sm" onclick={() => compose.open = true}>New entry</Button>
             </div>
 
             <form e:if={compose.open} class="stack" onsubmit={() => onPost(compose, (e) => entries = e)}>
-              <p e:if={compose.error} class="error" role="alert">{compose.error}</p>
+              <Alert e:if={compose.error} variant="danger" description={compose.error} />
 
               <div class="compose-row row is-start">
-                <div class="field compose-grow">
-                  <label for="entry-title">Title</label>
-                  <input id="entry-title"
-                         value={compose.form.title}
-                         class={[compose.errors.title && "is-error"]}
-                         placeholder="Timelines, and a faster search">
-                  <p e:if={compose.errors.title} class="error">{compose.errors.title?.[0]}</p>
-                </div>
-                <div class="field compose-version">
-                  <label for="entry-version">Version</label>
-                  <input id="entry-version" value={compose.form.version} placeholder="3.7">
-                </div>
+                <Field label="Title" error={compose.errors.title?.[0] ?? ""} class="compose-grow">
+                  <Input value={compose.form.title}
+                         placeholder="Timelines, and a faster search"
+                         attrs={{ id: "entry-title" }} />
+                </Field>
+                <Field label="Version" class="compose-version">
+                  <Input value={compose.form.version} placeholder="3.7" attrs={{ id: "entry-version" }} />
+                </Field>
               </div>
 
-              <div class="field">
-                <label for="entry-body">Notes</label>
-                <textarea id="entry-body"
-                          value={compose.form.body}
-                          class={[compose.errors.body && "is-error"]}
-                          placeholder="What changed, and what it means for customers. Separate paragraphs with a blank line."></textarea>
-                <p e:if={compose.errors.body} class="error">{compose.errors.body?.[0]}</p>
-              </div>
+              <Field label="Notes" error={compose.errors.body?.[0] ?? ""}>
+                <Textarea value={compose.form.body}
+                          placeholder="What changed, and what it means for customers. Separate paragraphs with a blank line."
+                          attrs={{ id: "entry-body" }} />
+              </Field>
 
-              <div class="field">
-                <label>Requests this release ships</label>
-                <div class="link-picker stack is-xs">
-                  <label e:for={r of linkable(requests)}>
-                    <input type="checkbox" group={compose.form.requestIds} value={r.id}>
-                    <span>{r.title}</span>
-                    <StatusPill status={r.status} />
-                  </label>
+              <FieldSet>
+                <FieldLegend variant="label">Requests this release ships</FieldLegend>
+                <div class="link-picker">
+                  <CheckboxGroup value={compose.form.requestIds}>
+                    <Label e:for={r of linkable(requests)}>
+                      <Checkbox value={r.id} />
+                      <span>{r.title}</span>
+                      <StatusPill status={r.status} />
+                    </Label>
+                  </CheckboxGroup>
                 </div>
-              </div>
+              </FieldSet>
 
-              <label>
-                <input type="checkbox" checked={compose.form.markShipped}>
+              <Label>
+                <Checkbox checked={compose.form.markShipped} />
                 Mark linked requests as shipped
-              </label>
+              </Label>
 
               <div class="row compose-actions">
-                <button type="button" class="is-ghost" onclick={() => compose.open = false}>Cancel</button>
-                <button type="submit" class="is-primary" disabled={compose.busy}>Publish</button>
+                <Button variant="ghost" onclick={() => compose.open = false}>Cancel</Button>
+                <Button type="submit" variant="primary" loading={compose.busy}>Publish</Button>
               </div>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <ol class="entries">
           <li e:for={entry of entries} id={entry.id} class="entry-card">
@@ -146,10 +150,7 @@ function onPost(compose: Compose, setEntries: (entries: ChangelogEntry[]) => voi
               <div e:if={entry.requests.length > 0} class="stack is-xs">
                 <p class="eyebrow">Requests shipped</p>
                 <div class="entry-links cluster is-xs">
-                  <a e:for={r of entry.requests} class="pill is-success" href={`/requests/${r.id}`}>
-                    <span class="pill-dot"></span>
-                    {r.title}
-                  </a>
+                  <Badge e:for={r of entry.requests} variant="success" dot href={`/requests/${r.id}`}>{r.title}</Badge>
                 </div>
               </div>
 
