@@ -6,6 +6,8 @@
 
 Feature requests with live votes and comments, statuses, merges, a public roadmap, a changelog and voter emails.
 
+Wishcairn uses the `elements` theme from @elements/ui.
+
 [Run this app on your machine](https://elements.dev/demos/01a0f3eb-ef9c-73ed-9b4c-4e490c420ecc). Use this demo as inspiration, or as the starting point for your own app. Your agent creates a new app with this one as the scaffold, and you prompt it to add whatever features you want.
 
 ## How it's built
