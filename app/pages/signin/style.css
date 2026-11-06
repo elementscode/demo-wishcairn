@@ -1,17 +1,8 @@
 @import "#app/shared/styles/page.css";
+@import "#app/shared/styles/auth.css";
 
 .auth {
-  display: grid;
   grid-template-columns: minmax(0, 26rem) minmax(0, 1fr);
-  gap: var(--space-10);
-  align-items: start;
-  justify-content: center;
-}
-
-.auth-form h1 {
-  margin: 0;
-  font-size: var(--text-3xl);
-  letter-spacing: -0.02em;
 }
 
 .demo-list {

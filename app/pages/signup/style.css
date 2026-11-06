@@ -1,6 +1,2 @@
 @import "#app/shared/styles/page.css";
-@import "#app/pages/signin/style.css";
-
-.page-signup .auth {
-  grid-template-columns: minmax(0, 26rem);
-}
+@import "#app/shared/styles/auth.css";
