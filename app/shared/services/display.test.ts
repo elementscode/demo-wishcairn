@@ -1,11 +1,12 @@
 import { test, equal } from "@elements/app";
-import { statusLabel, statusPill, isStatus } from "#app/shared/services/status";
+import { statusLabel, statusVariant, isStatus } from "#app/shared/services/status";
 import { timeAgo, plural, initials } from "#app/shared/services/format";
 
 test("display helpers", () => {
   test("statuses have labels and pills", () => {
     equal(statusLabel("in_progress"), "In progress");
-    equal(statusPill("shipped"), "is-success");
+    equal(statusVariant("shipped"), "success");
+    equal(statusVariant("under_review"), "outline");
     equal(isStatus("planned"), true);
     equal(isStatus("someday"), false);
   });

@@ -2,6 +2,9 @@ import "./style.css";
 import { session, redirect } from "@elements/app";
 import { signout } from "#app/shared/services/auth";
 import { initials } from "#app/shared/services/format";
+import { Avatar } from "@elements/ui/avatar";
+import { Badge } from "@elements/ui/badge";
+import { Button } from "@elements/ui/button";
 
 export type Section = "board" | "roadmap" | "changelog" | "none";
 
@@ -28,17 +31,17 @@ function onSignout() {
         <div class="site-account row">
           <div e:if={session.isLoggedIn()} class="row site-account">
             <span class="site-user row">
-              <span class={["avatar", session.get("role") === "admin" && "is-team"]} aria-hidden="true">
-                {initials(session.get("userName") ?? "")}
-              </span>
+              <Avatar size="sm"
+                      fallback={initials(session.get("userName") ?? "")}
+                      class={session.get("role") === "admin" ? "is-team" : ""} />
               <span class="site-user-name">{session.get("userName")}</span>
-              <span e:if={session.get("role") === "admin"} class="pill is-accent">Team</span>
+              <Badge e:if={session.get("role") === "admin"} variant="accent">Team</Badge>
             </span>
-            <button class="is-ghost is-sm" onclick={() => onSignout()}>Sign out</button>
+            <Button variant="ghost" size="sm" onclick={() => onSignout()}>Sign out</Button>
           </div>
           <div e:else class="row site-account">
             <a href="/signin">Sign in</a>
-            <a class="button is-primary is-sm" href="/signup">Sign up</a>
+            <Button variant="primary" size="sm" href="/signup">Sign up</Button>
           </div>
         </div>
       </div>

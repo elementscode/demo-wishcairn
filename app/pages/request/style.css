@@ -114,10 +114,6 @@
   color: var(--ink-soft);
 }
 
-.composer textarea {
-  min-height: 5rem;
-}
-
 .composer-actions {
   justify-content: space-between;
 }

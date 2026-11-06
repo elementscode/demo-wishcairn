@@ -10,20 +10,22 @@ export const STATUS_LABELS: Record<Status, string> = {
   closed: "Closed",
 };
 
-const STATUS_PILLS: Record<Status, string> = {
-  under_review: "",
-  planned: "is-info",
-  in_progress: "is-warning",
-  shipped: "is-success",
-  closed: "is-closed",
+export type StatusVariant = "outline" | "info" | "warning" | "success" | "secondary";
+
+const STATUS_VARIANTS: Record<Status, StatusVariant> = {
+  under_review: "outline",
+  planned: "info",
+  in_progress: "warning",
+  shipped: "success",
+  closed: "secondary",
 };
 
 export function statusLabel(status: string): string {
   return STATUS_LABELS[status as Status] ?? status;
 }
 
-export function statusPill(status: string): string {
-  return STATUS_PILLS[status as Status] ?? "";
+export function statusVariant(status: string): StatusVariant {
+  return STATUS_VARIANTS[status as Status] ?? "outline";
 }
 
 export function isStatus(value: string): value is Status {
