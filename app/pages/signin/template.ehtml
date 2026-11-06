@@ -4,6 +4,12 @@ import favicon from "#app/shared/assets/favicons/favicon.svg";
 import { Layout } from "#app/shared/templates/layout";
 import { signin } from "#app/shared/services/auth";
 import { initials } from "#app/shared/services/format";
+import { Alert } from "@elements/ui/alert";
+import { Avatar } from "@elements/ui/avatar";
+import { Button } from "@elements/ui/button";
+import { Card, CardContent } from "@elements/ui/card";
+import { Field } from "@elements/ui/field";
+import { Input } from "@elements/ui/input";
 
 export interface DemoLogin {
   name: string;
@@ -66,59 +72,50 @@ function onDemo(form: SigninForm, login: DemoLogin, next: string) {
   <body>
     <Layout>
       <div class="auth">
-        <div class="card">
-          <div class="card-body">
+        <Card>
+          <CardContent>
             <form class="auth-form stack" onsubmit={() => onSubmit(form, next)}>
               <div class="stack is-xs">
                 <h1>Sign in</h1>
                 <p class="text-ink-soft">Vote, comment, and hear when your requests move.</p>
               </div>
 
-              <p e:if={form.error} class="error" role="alert">{form.error}</p>
+              <Alert e:if={form.error} variant="danger" description={form.error} />
 
-              <div class="field">
-                <label for="email">Email</label>
-                <input id="email"
+              <Field label="Email">
+                <Input type="email"
+                       required
                        name="email"
-                       type="email"
                        value={form.email}
-                       autocomplete="email"
-                       autocapitalize="none"
-                       spellcheck={false}
                        placeholder="you@company.com"
-                       required>
-              </div>
+                       attrs={{ id: "email", autocomplete: "email", autocapitalize: "none", spellcheck: "false" }} />
+              </Field>
 
-              <div class="field">
-                <label for="password">Password</label>
-                <input id="password"
+              <Field label="Password">
+                <Input type="password"
+                       required
                        name="password"
-                       type="password"
                        value={form.password}
-                       autocomplete="current-password"
-                       required>
-              </div>
+                       attrs={{ id: "password", autocomplete: "current-password" }} />
+              </Field>
 
-              <button type="submit" class="is-primary is-block" disabled={form.busy}>Sign in</button>
+              <Button type="submit" variant="primary" block loading={form.busy}>Sign in</Button>
 
               <p class="text-sm text-ink-soft">New here? <a href="/signup">Create an account</a></p>
             </form>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div e:if={demo.length > 0} class="card">
-          <div class="card-head">
-            <h2>Demo accounts</h2>
-          </div>
-          <div class="card-body stack">
+        <Card e:if={demo.length > 0} title="Demo accounts" level={2}>
+          <CardContent class="stack">
             <p class="text-sm text-ink-soft">
               Every account's password is <code>{DEMO_PASSWORD}</code>. Pick one to sign in as that person.
             </p>
 
             <DemoGroup title="Team" logins={demo.filter((d) => d.role === "admin")} {form} {next} />
             <DemoGroup title="Customers" logins={demo.filter((d) => d.role === "customer")} {form} {next} />
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   </body>
@@ -134,16 +131,16 @@ function onDemo(form: SigninForm, login: DemoLogin, next: string) {
     <p class="eyebrow">{title}</p>
     <ul class="demo-list demo-grid">
       <li e:for={login of logins}>
-        <button type="button"
-                class="demo-login is-ghost"
+        <Button variant="ghost"
+                class="demo-login"
                 disabled={form.busy}
                 onclick={() => onDemo(form, login, next)}>
-          <span class={["avatar", login.role === "admin" && "is-team"]} aria-hidden="true">{initials(login.name)}</span>
+          <Avatar size="sm" fallback={initials(login.name)} class={login.role === "admin" ? "is-team" : ""} />
           <span class="demo-login-who">
             <span>{login.name}</span>
             <span class="demo-login-email">{login.email}</span>
           </span>
-        </button>
+        </Button>
       </li>
     </ul>
   </div>

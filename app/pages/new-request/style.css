@@ -6,10 +6,6 @@
   letter-spacing: -0.02em;
 }
 
-.new-request textarea {
-  min-height: 10rem;
-}
-
 .new-request-actions {
   justify-content: flex-end;
 }
