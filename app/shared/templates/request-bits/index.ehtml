@@ -35,9 +35,9 @@ export function toggleVote(votes: LiveView<Vote> | undefined, request: FeatureRe
   compact: boolean = false,
 )>
   <Toggle variant="outline"
-          class={["vote", compact && "is-compact"].filter(Boolean).join(" ")}
+          class={compact ? "vote is-compact" : "vote"}
           pressed={hasVoted(votes, request.id)}
-          label={`${hasVoted(votes, request.id) ? "Remove your vote" : "Vote"} for ${request.title}, ${request.voteCount} votes`}
+          label={`Vote for ${request.title}, ${request.voteCount} votes`}
           disabled={!!request.mergedIntoId}
           attrs={{ title: votes ? undefined : "Sign in to vote" }}
           onPressedChange={(_, details) => { details.cancel(); toggleVote(votes, request); }}>
